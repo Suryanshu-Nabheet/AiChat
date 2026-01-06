@@ -1,6 +1,6 @@
-import type { ChatMessage } from '../types/index.js';
+import type { ChatMessage } from "../types/index.js";
 
-export type AIProvider = 'openrouter' | 'openai' | 'anthropic' | 'google';
+export type AIProvider = "openrouter" | "openai" | "anthropic" | "google";
 
 export interface AIConfig {
   provider: AIProvider;
@@ -33,67 +33,79 @@ export class AIService {
     const { messages, config } = request;
 
     if (!config.apiKey) {
-      return { content: '', error: 'API key is required' };
+      return { content: "", error: "API key is required" };
     }
 
     try {
       switch (config.provider) {
-        case 'openrouter':
+        case "openrouter":
           return await this.callOpenRouter(messages, config);
-        case 'openai':
+        case "openai":
           return await this.callOpenAI(messages, config);
-        case 'anthropic':
+        case "anthropic":
           return await this.callAnthropic(messages, config);
-        case 'google':
+        case "google":
           return await this.callGoogle(messages, config);
         default:
-          return { content: '', error: 'Unsupported provider' };
+          return { content: "", error: "Unsupported provider" };
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error occurred';
-      return { content: '', error: `API Error: ${message}` };
+      const message =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      return { content: "", error: `API Error: ${message}` };
     }
   }
 
   private static async callOpenRouter(
     messages: ChatMessage[],
-    config: AIConfig,
+    config: AIConfig
   ): Promise<ChatResponse> {
-    const formattedMessages = this.formatMessages(messages, DEFAULT_SYSTEM_PROMPT);
+    const formattedMessages = this.formatMessages(
+      messages,
+      DEFAULT_SYSTEM_PROMPT
+    );
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.apiKey}`,
-        'HTTP-Referer': 'https://ai-chat.app',
-        'X-Title': 'AI Chat',
-      },
-      body: JSON.stringify({
-        model: config.modelId,
-        messages: formattedMessages,
-      }),
-    });
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${config.apiKey}`,
+          "HTTP-Referer": "https://ai-chat.app",
+          "X-Title": "AI Chat",
+        },
+        body: JSON.stringify({
+          model: config.modelId,
+          messages: formattedMessages,
+        }),
+      }
+    );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: "Request failed" } }));
       throw new Error(error.error?.message || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    return { content: data.choices[0]?.message?.content || '' };
+    return { content: data.choices[0]?.message?.content || "" };
   }
 
   private static async callOpenAI(
     messages: ChatMessage[],
-    config: AIConfig,
+    config: AIConfig
   ): Promise<ChatResponse> {
-    const formattedMessages = this.formatMessages(messages, DEFAULT_SYSTEM_PROMPT);
+    const formattedMessages = this.formatMessages(
+      messages,
+      DEFAULT_SYSTEM_PROMPT
+    );
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${config.apiKey}`,
       },
       body: JSON.stringify({
@@ -103,29 +115,31 @@ export class AIService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: "Request failed" } }));
       throw new Error(error.error?.message || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    return { content: data.choices[0]?.message?.content || '' };
+    return { content: data.choices[0]?.message?.content || "" };
   }
 
   private static async callAnthropic(
     messages: ChatMessage[],
-    config: AIConfig,
+    config: AIConfig
   ): Promise<ChatResponse> {
     const formattedMessages = messages.map((msg) => ({
-      role: msg.role === 'assistant' ? 'assistant' : 'user',
+      role: msg.role === "assistant" ? "assistant" : "user",
       content: msg.content,
     }));
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': config.apiKey,
-        'anthropic-version': '2023-06-01',
+        "Content-Type": "application/json",
+        "x-api-key": config.apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: config.modelId,
@@ -136,29 +150,31 @@ export class AIService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: "Request failed" } }));
       throw new Error(error.error?.message || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    return { content: data.content[0]?.text || '' };
+    return { content: data.content[0]?.text || "" };
   }
 
   private static async callGoogle(
     messages: ChatMessage[],
-    config: AIConfig,
+    config: AIConfig
   ): Promise<ChatResponse> {
     const formattedMessages = messages.map((msg) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
+      role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
     }));
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${config.modelId}:generateContent?key=${config.apiKey}`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           contents: formattedMessages,
@@ -172,32 +188,33 @@ export class AIService {
             maxOutputTokens: 4096,
           },
         }),
-      },
+      }
     );
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: "Request failed" } }));
       throw new Error(error.error?.message || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    return { content: data.candidates[0]?.content?.parts[0]?.text || '' };
+    return { content: data.candidates[0]?.content?.parts[0]?.text || "" };
   }
 
   private static formatMessages(
     messages: ChatMessage[],
-    systemPrompt: string,
+    systemPrompt: string
   ): Array<{ role: string; content: string }> {
     const formatted: Array<{ role: string; content: string }> = [];
 
-    formatted.push({ role: 'system', content: systemPrompt });
+    formatted.push({ role: "system", content: systemPrompt });
 
     return formatted.concat(
       messages.map((msg) => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        role: msg.role === "assistant" ? "assistant" : "user",
         content: msg.content,
-      })),
+      }))
     );
   }
 }
-

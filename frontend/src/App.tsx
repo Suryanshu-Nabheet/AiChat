@@ -1,30 +1,34 @@
-import { useState, useRef, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { SettingsModal } from './components/SettingsModal';
-import { ChatHeader } from './components/ChatHeader';
-import { ChatMessages } from './components/ChatMessages';
-import { ChatInput } from './components/ChatInput';
-import type { ChatMessage, ChatSummary } from './types/chat';
-import type { AppSettings } from './types/settings';
-import { AIService } from './services/aiService';
-import { storage } from './utils/storage';
-import { getDateGroup, generateChatTitle } from './utils/dateUtils';
-import { PROVIDERS } from './types/settings';
+import { useState, useRef, useEffect } from "react";
+import { Sidebar } from "./components/Sidebar";
+import { SettingsModal } from "./components/SettingsModal";
+import { ChatHeader } from "./components/ChatHeader";
+import { ChatMessages } from "./components/ChatMessages";
+import { ChatInput } from "./components/ChatInput";
+import type { ChatMessage, ChatSummary } from "./types/chat";
+import type { AppSettings } from "./types/settings";
+import { AIService } from "./services/aiService";
+import { storage } from "./utils/storage";
+import { getDateGroup, generateChatTitle } from "./utils/dateUtils";
+import { PROVIDERS } from "./types/settings";
 
 export function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
-  const [chatHistory, setChatHistory] = useState<ChatSummary[]>(() => storage.getChats());
+  const [chatHistory, setChatHistory] = useState<ChatSummary[]>(() =>
+    storage.getChats()
+  );
   const [activeChat, setActiveChat] = useState<number | null>(null);
   const [showChatMenu, setShowChatMenu] = useState<number | null>(null);
   const [showSettings, setShowSettings] = useState(() => {
     const saved = storage.getSettings();
     return !saved;
   });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [settings, setSettings] = useState<AppSettings | null>(() => storage.getSettings());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [settings, setSettings] = useState<AppSettings | null>(() =>
+    storage.getSettings()
+  );
   const [error, setError] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,7 +42,7 @@ export function App() {
 
   useEffect(() => {
     if (!textareaRef.current) return;
-    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = "auto";
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   }, [input]);
 
@@ -52,8 +56,8 @@ export function App() {
               // Update date group
               date: getDateGroup(new Date()),
             }
-          : chat,
-      ),
+          : chat
+      )
     );
   };
 
@@ -62,7 +66,7 @@ export function App() {
     if (!trimmed) return;
 
     if (!settings || !settings.apiKey) {
-      setError('Please configure your API settings first.');
+      setError("Please configure your API settings first.");
       setShowSettings(true);
       return;
     }
@@ -78,7 +82,7 @@ export function App() {
       const newChat: ChatSummary = {
         id: nextId,
         title: generateChatTitle(trimmed),
-        date: 'Today',
+        date: "Today",
         messages: [],
       };
       setChatHistory((prev) => [newChat, ...prev]);
@@ -89,14 +93,14 @@ export function App() {
     const baseTimestamp = new Date().toISOString();
     const userMessage: ChatMessage = {
       id: `user-${baseTimestamp}`,
-      role: 'user',
+      role: "user",
       content: trimmed,
       timestamp: baseTimestamp,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     appendMessageToActiveChat(userMessage);
-    setInput('');
+    setInput("");
     setIsTyping(true);
 
     try {
@@ -106,8 +110,8 @@ export function App() {
           prev.map((chat) =>
             chat.id === currentChatId
               ? { ...chat, title: generateChatTitle(trimmed) }
-              : chat,
-          ),
+              : chat
+          )
         );
       }
 
@@ -129,7 +133,7 @@ export function App() {
       const assistantTimestamp = new Date().toISOString();
       const assistantMessage: ChatMessage = {
         id: `assistant-${assistantTimestamp}`,
-        role: 'assistant',
+        role: "assistant",
         content: response.content,
         timestamp: assistantTimestamp,
       };
@@ -140,7 +144,7 @@ export function App() {
     } catch (err) {
       setIsTyping(false);
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to get response from AI';
+        err instanceof Error ? err.message : "Failed to get response from AI";
       setError(errorMessage);
     }
   };
@@ -182,10 +186,10 @@ export function App() {
     const chat = chatHistory.find((c) => c.id === chatId);
     if (!chat) return;
 
-    const newName = window.prompt('Enter new chat name:', chat.title);
+    const newName = window.prompt("Enter new chat name:", chat.title);
     if (newName && newName.trim()) {
       setChatHistory((prev) =>
-        prev.map((c) => (c.id === chatId ? { ...c, title: newName.trim() } : c)),
+        prev.map((c) => (c.id === chatId ? { ...c, title: newName.trim() } : c))
       );
     }
     setShowChatMenu(null);
@@ -208,9 +212,10 @@ export function App() {
 
   const currentModelName =
     settings?.modelId && settings.provider
-      ? PROVIDERS[settings.provider]?.models.find((m) => m.id === settings.modelId)?.name ||
-        settings.modelId
-      : 'Not configured';
+      ? PROVIDERS[settings.provider]?.models.find(
+          (m) => m.id === settings.modelId
+        )?.name || settings.modelId
+      : "Not configured";
 
   return (
     <div className="flex h-screen bg-white">
@@ -242,7 +247,6 @@ export function App() {
         <ChatHeader
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           modelName={currentModelName}
-          providerName={settings ? PROVIDERS[settings.provider]?.name : undefined}
         />
 
         {error && (

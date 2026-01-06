@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react';
-import { X, Key, AlertCircle, CheckCircle2, Shield, Zap, DollarSign, Gift } from 'lucide-react';
-import type { AppSettings, AIProvider } from '../types/settings';
-import { PROVIDERS } from '../types/settings';
-import { storage } from '../utils/storage';
+import { useState, useEffect } from "react";
+import {
+  X,
+  Key,
+  AlertCircle,
+  CheckCircle2,
+  Shield,
+  Zap,
+  Bot,
+} from "lucide-react";
+import type { AppSettings, AIProvider } from "../types/settings";
+import { PROVIDERS } from "../types/settings";
+import { storage } from "../utils/storage";
 
 interface SettingsModalProps {
   open: boolean;
@@ -18,25 +26,27 @@ export function SettingsModal({
   currentSettings,
 }: SettingsModalProps) {
   const [settings, setSettings] = useState<AppSettings>({
-    provider: 'openrouter',
-    apiKey: '',
-    modelId: '',
+    provider: "openrouter",
+    apiKey: "",
+    modelId: "",
   });
   const [showApiKey, setShowApiKey] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
-  const [searchModel, setSearchModel] = useState('');
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+  const [searchModel, setSearchModel] = useState("");
 
   useEffect(() => {
     if (open && currentSettings) {
       setSettings(currentSettings);
     } else {
-      setSearchModel('');
+      setSearchModel("");
     }
   }, [open, currentSettings]);
 
   const currentProvider = PROVIDERS[settings.provider];
   const availableModels = currentProvider?.models || [];
-  
+
   const filteredModels = searchModel
     ? availableModels.filter(
         (model) =>
@@ -47,23 +57,23 @@ export function SettingsModal({
 
   const handleSave = () => {
     if (!settings.apiKey.trim()) {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 2000);
       return;
     }
 
     if (!settings.modelId) {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 2000);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 2000);
       return;
     }
 
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     storage.saveSettings(settings);
     onSave(settings);
-    setSaveStatus('success');
+    setSaveStatus("success");
     setTimeout(() => {
-      setSaveStatus('idle');
+      setSaveStatus("idle");
       onClose();
     }, 1000);
   };
@@ -73,199 +83,219 @@ export function SettingsModal({
     setSettings({
       ...settings,
       provider,
-      modelId: newProvider.models[0]?.id || '',
+      modelId: newProvider.models[0]?.id || "",
     });
-    setSearchModel('');
+    setSearchModel("");
   };
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col transform transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-5 flex items-center justify-between">
+        <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-white/50 backdrop-blur-xl">
           <div>
-            <h2 className="text-2xl font-bold">Settings</h2>
-            <p className="text-blue-100 text-sm mt-1">Configure your AI provider and API key</p>
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Settings
+            </h2>
+            <p className="text-gray-500 text-sm mt-1">
+              Configure your AI experience
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg transition-colors text-white/90 hover:text-white"
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-gray-50/50">
           {/* Provider Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Zap size={18} className="text-blue-600" />
+          <section>
+            <label className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                <Zap size={18} />
+              </span>
               AI Provider
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {(Object.keys(PROVIDERS) as AIProvider[]).map((provider) => (
                 <button
                   key={provider}
                   onClick={() => handleProviderChange(provider)}
-                  className={`p-4 rounded-xl border-2 transition-colors text-left ${
+                  className={`p-4 rounded-2xl border transition-all duration-200 text-left relative overflow-hidden group ${
                     settings.provider === provider
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white'
+                      ? "border-blue-500 bg-white ring-4 ring-blue-500/10 shadow-sm"
+                      : "border-transparent bg-white hover:bg-gray-50 shadow-sm hover:shadow-md"
                   }`}
                 >
-                  <div className="font-semibold text-gray-900 mb-1">
+                  <div className="font-semibold text-gray-900 mb-1 relative z-10">
                     {PROVIDERS[provider].name}
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {PROVIDERS[provider].models.length} models available
+                  <div className="text-xs text-gray-500 relative z-10">
+                    {PROVIDERS[provider].models.length} models
                   </div>
+                  {settings.provider === provider && (
+                    <div className="absolute top-0 right-0 p-2 text-blue-500">
+                      <CheckCircle2 size={16} />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
           {/* API Key */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Key size={18} className="text-blue-600" />
+          <section>
+            <label className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600">
+                <Key size={18} />
+              </span>
               API Key
             </label>
-            <div className="relative">
-              <input
-                type={showApiKey ? 'text' : 'password'}
-                value={settings.apiKey}
-                onChange={(e) =>
-                  setSettings({ ...settings, apiKey: e.target.value })
-                }
-                placeholder={`Enter your ${PROVIDERS[settings.provider].name} API key`}
-                className="w-full px-5 py-3 pr-14 border-2 border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors"
-              >
-                <Key size={20} />
-              </button>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200/50">
+              <div className="relative">
+                <input
+                  type={showApiKey ? "text" : "password"}
+                  value={settings.apiKey}
+                  onChange={(e) =>
+                    setSettings({ ...settings, apiKey: e.target.value })
+                  }
+                  placeholder={`Enter your ${
+                    PROVIDERS[settings.provider].name
+                  } API key`}
+                  className="w-full px-5 py-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm font-mono text-gray-800 placeholder-gray-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <Key size={20} />
+                </button>
+              </div>
+              <div className="mt-4 flex items-center gap-3 text-xs text-gray-500">
+                <Shield size={14} className="text-green-500" />
+                <span>
+                  Keys are stored locally and encrypted. Never shared.
+                </span>
+              </div>
             </div>
-            <div className="mt-3 flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
-              <Shield size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-blue-800">
-                Your API key is encrypted and stored locally. It's never sent to our servers.
-              </p>
-            </div>
-          </div>
+          </section>
 
           {/* Model Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <section>
+            <label className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                <Bot size={18} />
+              </span>
               Model Selection
             </label>
-            
-            {/* Search */}
-            <div className="mb-4">
-              <input
-                type="text"
-                value={searchModel}
-                onChange={(e) => setSearchModel(e.target.value)}
-                placeholder="Search models..."
-                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-colors"
-              />
-            </div>
 
-            {/* Model List */}
-            <div className="border-2 border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
-              {filteredModels.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <p>No models found matching "{searchModel}"</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100">
-                  {filteredModels.map((model) => (
-                    <button
-                      key={model.id}
-                      onClick={() => setSettings({ ...settings, modelId: model.id })}
-                      className={`w-full text-left p-4 transition-colors ${
-                        settings.modelId === model.id
-                          ? 'bg-blue-50 border-l-4 border-blue-500'
-                          : 'bg-white'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 overflow-hidden">
+              <div className="p-4 border-b border-gray-100">
+                <input
+                  type="text"
+                  value={searchModel}
+                  onChange={(e) => setSearchModel(e.target.value)}
+                  placeholder="Search available models..."
+                  className="w-full px-4 py-2.5 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 text-sm transition-colors"
+                />
+              </div>
+
+              <div className="max-h-[300px] overflow-y-auto">
+                {filteredModels.length === 0 ? (
+                  <div className="p-12 text-center text-gray-400">
+                    <p>No models found</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-50">
+                    {filteredModels.map((model) => (
+                      <button
+                        key={model.id}
+                        onClick={() =>
+                          setSettings({ ...settings, modelId: model.id })
+                        }
+                        className={`w-full text-left p-4 hover:bg-gray-50 transition-all flex items-center gap-4 group ${
+                          settings.modelId === model.id ? "bg-blue-50/50" : ""
+                        }`}
+                      >
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            settings.modelId === model.id
+                              ? "border-blue-500 bg-blue-500"
+                              : "border-gray-300 group-hover:border-blue-400"
+                          }`}
+                        >
+                          {settings.modelId === model.id && (
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-gray-900 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`font-medium text-sm ${
+                                settings.modelId === model.id
+                                  ? "text-blue-700"
+                                  : "text-gray-900"
+                              }`}
+                            >
                               {model.name}
                             </span>
-                            {model.pricing === 'free' ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-md text-xs font-medium">
-                                <Gift size={12} />
+                            {model.pricing === "free" && (
+                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wide">
                                 Free
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
-                                <DollarSign size={12} />
-                                Paid
                               </span>
                             )}
                           </div>
                           {model.description && (
-                            <p className="text-xs text-gray-500 mt-1">{model.description}</p>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                              {model.description}
+                            </p>
                           )}
                         </div>
-                        {settings.modelId === model.id && (
-                          <div className="flex-shrink-0">
-                            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                              <div className="w-2 h-2 rounded-full bg-white" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+          </section>
+        </div>
+
+        <div className="p-6 border-t border-gray-100 bg-white flex items-center gap-4">
+          <div className="flex-1">
+            {saveStatus === "error" && (
+              <span className="text-red-600 text-sm font-medium flex items-center gap-2 animate-fade-in">
+                <AlertCircle size={16} /> Fill all fields
+              </span>
+            )}
+            {saveStatus === "success" && (
+              <span className="text-green-600 text-sm font-medium flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 size={16} /> Saved!
+              </span>
+            )}
           </div>
-
-          {/* Save Status */}
-          {saveStatus === 'error' && (
-            <div className="flex items-center gap-3 p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700">
-              <AlertCircle size={20} />
-              <span className="text-sm font-medium">Please fill in all required fields</span>
-            </div>
-          )}
-
-          {saveStatus === 'success' && (
-            <div className="flex items-center gap-3 p-4 bg-green-50 border-2 border-green-200 rounded-xl text-green-700">
-              <CheckCircle2 size={20} />
-              <span className="text-sm font-medium">Settings saved successfully!</span>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4 border-t border-gray-200">
-            <button
-              onClick={onClose}
-              className="flex-1 px-6 py-3 border-2 border-gray-200 rounded-xl font-semibold text-gray-700 bg-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saveStatus === 'saving'}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-6 py-3 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saveStatus === "saving"}
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {saveStatus === "saving" ? "Saving..." : "Save Changes"}
+          </button>
         </div>
       </div>
     </div>
