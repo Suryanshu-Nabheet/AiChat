@@ -1,18 +1,18 @@
-import * as crypto from 'crypto';
-import bcrypt from 'bcryptjs';
+import * as crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 /**
  * Generate a cryptographically secure random ID
  */
 export function generateSecureId(length: number = 32): string {
-  return crypto.randomBytes(length).toString('hex');
+  return crypto.randomBytes(length).toString("hex");
 }
 
 /**
  * Generate a secure session token
  */
 export function generateSessionToken(): string {
-  return crypto.randomBytes(64).toString('hex');
+  return crypto.randomBytes(64).toString("hex");
 }
 
 /**
@@ -28,7 +28,7 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(
   password: string,
-  hash: string,
+  hash: string
 ): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
@@ -39,18 +39,18 @@ export async function verifyPassword(
 export function sanitizeInput(input: string): string {
   return input
     .trim()
-    .replace(/[<>]/g, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+=/gi, '');
+    .replace(/[<>]/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/on\w+=/gi, "");
 }
 
 /**
  * Validate API key format (basic validation)
  */
 export function validateApiKey(apiKey: string): boolean {
-  if (!apiKey || apiKey.length < 20) return false;
-  // Basic format check - adjust based on provider requirements
-  return /^[a-zA-Z0-9_-]+$/.test(apiKey);
+  // Relaxed validation - just check length and basic existence
+  if (!apiKey || apiKey.length < 10) return false;
+  return true;
 }
 
 /**
@@ -59,4 +59,3 @@ export function validateApiKey(apiKey: string): boolean {
 export function getRateLimitKey(ip: string, endpoint: string): string {
   return `rate_limit:${endpoint}:${ip}`;
 }
-

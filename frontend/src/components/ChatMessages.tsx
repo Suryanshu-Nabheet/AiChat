@@ -3,15 +3,20 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Sparkles, User, Copy, Check, Bot } from "lucide-react";
+import { Sparkles, User, Copy, Check } from "lucide-react";
 import type { ChatMessage } from "../types/chat";
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
   isTyping: boolean;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
-export function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
+export function ChatMessages({
+  messages,
+  isTyping,
+  onSuggestionClick,
+}: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -32,31 +37,32 @@ export function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
   if (messages.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center px-4 animate-fade-in">
-        <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mb-8 shadow-xl shadow-blue-500/20">
-          <Bot size={40} className="text-white" />
+        <div className="mb-6 text-blue-600">
+          <Sparkles size={48} />
         </div>
-        <h1 className="text-4xl font-bold mb-4 text-slate-800 tracking-tight">
-          Welcome to CodeX
+        <h1 className="text-3xl font-bold mb-3 text-gray-900 tracking-tight">
+          AiChat
         </h1>
-        <p className="text-lg text-slate-500 mb-8 max-w-md text-center leading-relaxed">
+        <p className="text-gray-500 mb-8 max-w-md text-center leading-relaxed">
           Your advanced AI coding companion. Ask me anything, generate code, or
           debug issues.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full">
           {[
             "Explain a complex concept",
             "Write a Python script",
-            "Debug my React component",
+            "Debug a React component",
             "Draft an email",
           ].map((suggestion, i) => (
-            <div
+            <button
               key={i}
-              className="p-4 rounded-xl border border-gray-200 bg-white hover:border-blue-400/50 hover:shadow-md transition-all cursor-default group"
+              onClick={() => onSuggestionClick?.(suggestion)}
+              className="p-4 rounded-xl border border-gray-100 bg-white hover:border-blue-500/20 hover:shadow-md hover:-translate-y-0.5 transition-all text-left group"
             >
-              <p className="text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors">
+              <p className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
                 "{suggestion}"
               </p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -114,112 +120,116 @@ export function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
                     {isUser ? (
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                     ) : (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        className="prose prose-sm max-w-none prose-slate prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-800 prose-code:text-red-500 prose-code:bg-red-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none"
-                        components={{
-                          code({
-                            node,
-                            inline,
-                            className,
-                            children,
-                            ...props
-                          }: any) {
-                            const match = /language-(\w+)/.exec(
-                              className || ""
-                            );
-                            const codeId = `${msg.id}-${Math.random()
-                              .toString(36)
-                              .substr(2, 9)}`;
+                      <div className="prose prose-sm max-w-none prose-slate prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-800 prose-code:text-red-500 prose-code:bg-red-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({
+                              inline,
+                              className,
+                              children,
+                              ...props
+                            }: any) {
+                              // eslint-disable-line @typescript-eslint/no-explicit-any
 
-                            if (!inline && match) {
-                              return (
-                                <div className="rounded-xl overflow-hidden my-4 border border-gray-800 bg-[#1e1e1e] not-prose">
-                                  <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-gray-700">
-                                    <span className="text-xs font-medium text-gray-400 lowercase">
-                                      {match[1]}
-                                    </span>
-                                    <button
-                                      onClick={() =>
-                                        copyToClipboard(
-                                          String(children).replace(/\n$/, ""),
-                                          codeId
-                                        )
-                                      }
-                                      className="text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs"
-                                    >
-                                      {copiedId === codeId ? (
-                                        <>
-                                          <Check
-                                            size={12}
-                                            className="text-green-400"
-                                          />
-                                          <span className="text-green-400">
-                                            Copied
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Copy size={12} />
-                                          <span>Copy</span>
-                                        </>
-                                      )}
-                                    </button>
-                                  </div>
-                                  <SyntaxHighlighter
-                                    {...props}
-                                    style={vscDarkPlus}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{
-                                      margin: 0,
-                                      borderRadius: 0,
-                                      padding: "1.5rem",
-                                      backgroundColor: "#1e1e1e",
-                                    }}
-                                  >
-                                    {String(children).replace(/\n$/, "")}
-                                  </SyntaxHighlighter>
-                                </div>
+                              const match = /language-(\w+)/.exec(
+                                className || ""
                               );
-                            }
-                            return (
-                              <code {...props} className={className}>
+                              const codeId = `${msg.id}-${Math.random()
+                                .toString(36)
+                                .substr(2, 9)}`;
+
+                              if (!inline && match) {
+                                return (
+                                  <div className="rounded-xl overflow-hidden my-4 border border-gray-800 bg-[#1e1e1e] not-prose">
+                                    <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-gray-700">
+                                      <span className="text-xs font-medium text-gray-400 lowercase">
+                                        {match[1]}
+                                      </span>
+                                      <button
+                                        onClick={() =>
+                                          copyToClipboard(
+                                            String(children).replace(/\n$/, ""),
+                                            codeId
+                                          )
+                                        }
+                                        className="text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs"
+                                      >
+                                        {copiedId === codeId ? (
+                                          <>
+                                            <Check
+                                              size={12}
+                                              className="text-green-400"
+                                            />
+                                            <span className="text-green-400">
+                                              Copied
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Copy size={12} />
+                                            <span>Copy</span>
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                    <SyntaxHighlighter
+                                      {...props}
+                                      style={vscDarkPlus}
+                                      language={match[1]}
+                                      PreTag="div"
+                                      customStyle={{
+                                        margin: 0,
+                                        borderRadius: 0,
+                                        padding: "1.5rem",
+                                        backgroundColor: "#1e1e1e",
+                                      }}
+                                    >
+                                      {String(children).replace(/\n$/, "")}
+                                    </SyntaxHighlighter>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <code {...props} className={className}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            // Customize other elements if needed
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-4 my-2">
                                 {children}
-                              </code>
-                            );
-                          },
-                          // Customize other elements if needed
-                          ul: ({ children }) => (
-                            <ul className="list-disc pl-4 my-2">{children}</ul>
-                          ),
-                          ol: ({ children }) => (
-                            <ol className="list-decimal pl-4 my-2">
-                              {children}
-                            </ol>
-                          ),
-                          li: ({ children }) => (
-                            <li className="my-1">{children}</li>
-                          ),
-                          p: ({ children }) => (
-                            <p className="mb-2 last:mb-0 leading-7">
-                              {children}
-                            </p>
-                          ),
-                          a: ({ href, children }) => (
-                            <a
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
+                              </ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="list-decimal pl-4 my-2">
+                                {children}
+                              </ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="my-1">{children}</li>
+                            ),
+                            p: ({ children }) => (
+                              <p className="mb-2 last:mb-0 leading-7">
+                                {children}
+                              </p>
+                            ),
+                            a: ({ href, children }) => (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {children}
+                              </a>
+                            ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                     )}
                   </div>
                 </div>

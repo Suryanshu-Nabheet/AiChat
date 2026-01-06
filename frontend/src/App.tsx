@@ -262,7 +262,15 @@ export function App() {
         )}
 
         <section className="flex-1 overflow-y-auto bg-white">
-          <ChatMessages messages={messages} isTyping={isTyping} />
+          <ChatMessages
+            messages={messages}
+            isTyping={isTyping}
+            onSuggestionClick={(suggestion) => {
+              setInput(suggestion);
+              // Optional: auto-submit
+              // setTimeout(() => handleSend(),
+            }}
+          />
         </section>
 
         <ChatInput

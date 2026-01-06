@@ -21,7 +21,7 @@ export function ChatHeader({ onToggleSidebar, modelName }: ChatHeaderProps) {
             <Sparkles size={16} className="text-white" />
           </div>
           <h1 className="text-lg font-bold text-gray-900 tracking-tight">
-            CodeX
+            AiChat
           </h1>
         </div>
 

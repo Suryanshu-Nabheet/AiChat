@@ -9,6 +9,7 @@ import {
   Archive,
   Settings,
   User,
+  Sparkles,
 } from "lucide-react";
 import type { ChatSummary } from "../types/chat";
 
@@ -125,6 +126,14 @@ export function Sidebar({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Sparkles
+                            size={16}
+                            className={`flex-shrink-0 ${
+                              activeChatId === chat.id
+                                ? "text-blue-600"
+                                : "text-gray-400 group-hover/item:text-gray-500"
+                            }`}
+                          />
                           <span className="text-sm text-gray-700 truncate font-medium group-hover/item:text-gray-900 transition-colors">
                             {chat.title}
                           </span>

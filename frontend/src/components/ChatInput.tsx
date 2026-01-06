@@ -51,7 +51,7 @@ export function ChatInput({
             placeholder={
               disabled
                 ? "Configure your API settings to start chatting..."
-                : "Message CodeX..."
+                : "Message AiChat..."
             }
             rows={1}
             disabled={disabled}

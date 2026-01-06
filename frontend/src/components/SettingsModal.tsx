@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   X,
   Key,
@@ -6,7 +6,7 @@ import {
   CheckCircle2,
   Shield,
   Zap,
-  Bot,
+  Sparkles,
 } from "lucide-react";
 import type { AppSettings, AIProvider } from "../types/settings";
 import { PROVIDERS } from "../types/settings";
@@ -25,24 +25,18 @@ export function SettingsModal({
   onSave,
   currentSettings,
 }: SettingsModalProps) {
-  const [settings, setSettings] = useState<AppSettings>({
-    provider: "openrouter",
-    apiKey: "",
-    modelId: "",
-  });
+  const [settings, setSettings] = useState<AppSettings>(
+    currentSettings || {
+      provider: "openrouter",
+      apiKey: "",
+      modelId: "",
+    }
+  );
   const [showApiKey, setShowApiKey] = useState(false);
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
   const [searchModel, setSearchModel] = useState("");
-
-  useEffect(() => {
-    if (open && currentSettings) {
-      setSettings(currentSettings);
-    } else {
-      setSearchModel("");
-    }
-  }, [open, currentSettings]);
 
   const currentProvider = PROVIDERS[settings.provider];
   const availableModels = currentProvider?.models || [];
@@ -161,7 +155,7 @@ export function SettingsModal({
               API Key
             </label>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200/50">
-              <div className="relative">
+              <form onSubmit={(e) => e.preventDefault()} className="relative">
                 <input
                   type={showApiKey ? "text" : "password"}
                   value={settings.apiKey}
@@ -171,6 +165,7 @@ export function SettingsModal({
                   placeholder={`Enter your ${
                     PROVIDERS[settings.provider].name
                   } API key`}
+                  autoComplete="off"
                   className="w-full px-5 py-4 pr-12 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm font-mono text-gray-800 placeholder-gray-400"
                 />
                 <button
@@ -180,7 +175,7 @@ export function SettingsModal({
                 >
                   <Key size={20} />
                 </button>
-              </div>
+              </form>
               <div className="mt-4 flex items-center gap-3 text-xs text-gray-500">
                 <Shield size={14} className="text-green-500" />
                 <span>
@@ -194,7 +189,7 @@ export function SettingsModal({
           <section>
             <label className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
-                <Bot size={18} />
+                <Sparkles size={18} />
               </span>
               Model Selection
             </label>
