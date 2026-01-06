@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, User, Copy, Check, Terminal, Bot } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { Sparkles, User, Copy, Check, Bot } from "lucide-react";
 import type { ChatMessage } from "../types/chat";
 
 interface ChatMessagesProps {
@@ -23,76 +27,6 @@ export function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
     } catch (err) {
       console.error("Failed to copy:", err);
     }
-  };
-
-  const renderContent = (content: string, messageId: string) => {
-    const parts = content.split(/```(\w+)?\n([\s\S]*?)```/g);
-
-    if (parts.length === 1) {
-      return (
-        <p className="text-[15px] leading-7 whitespace-pre-wrap">{content}</p>
-      );
-    }
-
-    return parts.map((part, index) => {
-      // The split logic:
-      // index % 3 === 0: text
-      // index % 3 === 1: language
-      // index % 3 === 2: code
-
-      if (index % 3 === 0) {
-        if (!part.trim()) return null;
-        return (
-          <p
-            key={index}
-            className="text-[15px] leading-7 whitespace-pre-wrap mb-4 last:mb-0"
-          >
-            {part}
-          </p>
-        );
-      }
-
-      if (index % 3 === 1) return null; // Skip language, handled with code
-
-      const language = parts[index - 1] || "text";
-      const code = part;
-      const codeId = `${messageId}-${index}`;
-
-      return (
-        <div
-          key={index}
-          className="my-4 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-gray-900"
-        >
-          <div className="flex items-center justify-between px-4 py-2 bg-gray-800/50 border-b border-gray-700/50">
-            <span className="text-xs font-medium text-gray-400 lowercase flex items-center gap-2">
-              <Terminal size={12} />
-              {language}
-            </span>
-            <button
-              onClick={() => copyToClipboard(code, codeId)}
-              className="text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs"
-            >
-              {copiedId === codeId ? (
-                <>
-                  <Check size={12} className="text-green-400" />
-                  <span className="text-green-400">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={12} />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
-          </div>
-          <div className="p-4 overflow-x-auto">
-            <code className="font-mono text-sm text-gray-200 whitespace-pre">
-              {code}
-            </code>
-          </div>
-        </div>
-      );
-    });
   };
 
   if (messages.length === 0) {
@@ -173,11 +107,120 @@ export function ChatMessages({ messages, isTyping }: ChatMessagesProps) {
                   className={`relative inline-block text-left px-5 py-3.5 rounded-2xl shadow-sm ${
                     isUser
                       ? "bg-blue-600 text-white rounded-tr-sm"
-                      : "bg-white border border-gray-200/60 rounded-tl-sm"
+                      : "bg-white border border-gray-200/60 rounded-tl-sm w-full"
                   }`}
                 >
                   <div className={isUser ? "text-blue-50" : "text-slate-700"}>
-                    {renderContent(msg.content, msg.id)}
+                    {isUser ? (
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    ) : (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        className="prose prose-sm max-w-none prose-slate prose-pre:bg-[#1e1e1e] prose-pre:p-0 prose-pre:rounded-xl prose-pre:border prose-pre:border-gray-800 prose-code:text-red-500 prose-code:bg-red-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none"
+                        components={{
+                          code({
+                            node,
+                            inline,
+                            className,
+                            children,
+                            ...props
+                          }: any) {
+                            const match = /language-(\w+)/.exec(
+                              className || ""
+                            );
+                            const codeId = `${msg.id}-${Math.random()
+                              .toString(36)
+                              .substr(2, 9)}`;
+
+                            if (!inline && match) {
+                              return (
+                                <div className="rounded-xl overflow-hidden my-4 border border-gray-800 bg-[#1e1e1e] not-prose">
+                                  <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-gray-700">
+                                    <span className="text-xs font-medium text-gray-400 lowercase">
+                                      {match[1]}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        copyToClipboard(
+                                          String(children).replace(/\n$/, ""),
+                                          codeId
+                                        )
+                                      }
+                                      className="text-gray-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs"
+                                    >
+                                      {copiedId === codeId ? (
+                                        <>
+                                          <Check
+                                            size={12}
+                                            className="text-green-400"
+                                          />
+                                          <span className="text-green-400">
+                                            Copied
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy size={12} />
+                                          <span>Copy</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                  <SyntaxHighlighter
+                                    {...props}
+                                    style={vscDarkPlus}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{
+                                      margin: 0,
+                                      borderRadius: 0,
+                                      padding: "1.5rem",
+                                      backgroundColor: "#1e1e1e",
+                                    }}
+                                  >
+                                    {String(children).replace(/\n$/, "")}
+                                  </SyntaxHighlighter>
+                                </div>
+                              );
+                            }
+                            return (
+                              <code {...props} className={className}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          // Customize other elements if needed
+                          ul: ({ children }) => (
+                            <ul className="list-disc pl-4 my-2">{children}</ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal pl-4 my-2">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="my-1">{children}</li>
+                          ),
+                          p: ({ children }) => (
+                            <p className="mb-2 last:mb-0 leading-7">
+                              {children}
+                            </p>
+                          ),
+                          a: ({ href, children }) => (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {children}
+                            </a>
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
                   </div>
                 </div>
 
