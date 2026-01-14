@@ -1,6 +1,6 @@
 # AI Chat
 
-A production-ready, enterprise-level AI chat platform that supports multiple AI providers including OpenRouter, OpenAI, Anthropic (Claude), and Google (Gemini).
+An AI chat platform that supports multiple AI providers including OpenRouter, OpenAI, Anthropic (Claude), and Google (Gemini).
 
 **Founder:** Suryanshu Nabheet
 
@@ -177,4 +177,4 @@ The production build will be in `backend/dist/`
 
 ## 📄 License
 
-Copyright © 2024 Suryanshu Nabheet. All rights reserved.
+Copyright © 2026 Suryanshu Nabheet. All rights reserved.
